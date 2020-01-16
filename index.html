@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/gif" href="Poke-Ball-48.png" />
+    <title>
+      Sandy's SoS client
+    </title>
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="index.css">
+  </head>
+  <body>
+    <div style="width: 50%;float: left;">
+      <div id="map" class="map">
+      
+      </div>
+    </div>
+    
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content"></div>
+    </div>
+
+    <div id="interface" style="width: 49%; float: right; text-align: center;">
+      <div id="heading" class="display-1">
+        <strong>SOS Client for Monitoring Nuclear Tests</strong><br>
+      </div>
+      <form class="form-inline" style="">
+        <table>
+        </table>
+          <tr>
+            <td>
+              <button type="button" class="btn btn-success" id="sendCapabilities" style="margin: 2%; margin-top:2%; margin-left: 8.75%; padding: 1%; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+                <strong>
+                  Send Get Capabilites Request
+                </strong>
+              </button>
+            </td>
+            <td>
+              <label style="margin-left:2%;padding: 2%"> Select sensor:</label>
+            </td>
+            <td>
+              <select class="form-control" id="selectSensor" style="width: 25%">
+                <option>Seismometer</option>
+                <option>Geiger counter</option>
+              </select>
+            </td>
+            <td>
+              <button type="button" class="btn btn-primary"  id="desc" style="margin: 2%; margin-top:2%; padding: 1%; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+                <strong>Describe sensor</strong>
+              </button>       
+            </td>
+          </tr>
+        </table>
+      </form>
+      <textarea class="form-control" rows="5" id="descSensorResponse" style="box-shadow: 0 4px 4px 0 rgba(0,0,0,0.2), 0 4px 4px 0 rgba(0,0,0,0.19); width: 88%; margin-left: 5%">
+      </textarea>
+      <label class="checkbox-inline" style="margin: 1%; margin-bottom:0.2%;"><input type="checkbox" value="Radiation" id="radiation" >Radiation</label>
+      <label class="checkbox-inline" style="margin: 1%; margin-bottom:0.2%;"><input type="checkbox" value="seismic" id="seismic" >Seismic activity</label>
+      <label class="checkbox-inline" style="margin: 1%; margin-bottom:0.2%;"><input type="checkbox" value="waterlevel" id="waterlevel" >Water Level</label>
+      <label class="checkbox-inline" style="margin: 1%; margin-bottom:0.2%;"><input type="checkbox" value="windspeed" id="windspeed" >Wind speed</label>
+      <button type="button" class="btn btn-primary"  id="getObservations" style="margin: 1%; padding: 1%; margin-bottom:0.2%;box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+         <strong>Get observations</strong>
+      </button> 
+      <div id="observations">
+        <label  style="margin: 37%;margin-top: 0%;margin-bottom: 0%; font-size: 250%; text-align: center;">Observations</label>
+        <table id="observationTable" class="table-striped" style="width: 60%; margin:20%; margin-top:0%; margin-bottom: 0%">
+          <thead>
+            <tr>
+              <td>
+                <table class="table-striped" style="width: 100%; margin:0%; margin-top:0%">
+                  <tr>
+                    <th class="tableCell">Feature</th>
+                    <th class="tableCell">Property</th>
+                    
+                    <th class="tableCell">Value</th>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div style=" height:80px; overflow:auto;">
+                  <table class="table-striped" id="tableBody" cellspacing="0" cellpadding="1" border="1" style="width: 100%; margin:0%;">
+                  </table>  
+                </div>
+              </td>
+            </tr>
+          </thead>
+        </table>
+        <label style="margin: 37%;margin-top: 0%;margin-bottom: 0%; font-size: 250%; text-align: center;">Filter results</label>
+      </div>
+      <div style="width: 40%; float: left; margin: 3%; margin-top: 0%; margin-bottom: 0%" id="spatialFiltering">
+        <label style="margin-left: 42%; margin-top: 0%; margin-bottom: 1%; font-size: 125%"><strong>Spatial filtering</strong></label>
+        <div id="boundingBoxParameters">
+          <button type="button" class="btn btn-secondary" id="setSpatialFilter" style="margin-left: 42%; padding: 1%; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+          <strong>Set Spatial Filter</strong>
+        </button>
+          <label id="boundingBoxPrompt" style="margin: 3%; margin-left: 37%; ">
+            <strong>Draw Bounding box on map</strong>
+          </label> 
+          <form class="form-inline" style="">
+            <table>
+              <tr>
+                <th>
+                  <label>
+                    <strong>X_min:</strong>
+                  </label>      
+                </th>
+                <th>
+                  <input type="text" class="form-control" id="xMin" style="width: 1; margin: ">      
+                </th>
+                <th>
+                  <label>
+                    <strong>Y_min:</strong>
+                  </label>      
+                </th>
+                <th>
+                  <input type="email" class="form-control" id="yMin" style="width: 1; margin: ">      
+                </th>
+              </tr>
+              <tr>
+                <th>
+                  <label>
+                    <strong>X_max:</strong>
+                  </label>      
+                </th>
+                <td>
+                  <input type="text" class="form-control" id="xMax" style="width: 1; margin: ">      
+                </th>
+                <th>
+                  <label>
+                    <strong>Y_max:</strong>
+                  </label>      
+                </th>
+                <th>
+                  <input type="text" class="form-control" id="yMax" style="width: 1; margin: ">      
+                </th>
+              </tr>
+            </table>  
+          </form>
+        </div>
+        <button type="button" class="btn btn-secondary" id="filterSpatial" style="margin-left: 40%; padding: 1%; margin-top: 2%; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+          <strong>Apply Spatial Filter</strong>
+        </button>
+      </div>
+      <div style="width: ; float: right; margin: %; margin-top: 0%; margin-bottom: 0%; margin-right: 19%" id="spatialFiltering">
+        <label style="margin-left: 40%; margin-top: 1%; font-size: 125%"><strong>Temporal filtering</strong></label>
+        <form class="form-inline" style="margin-left: 20%;">
+          <table>
+            <tr>
+              <th>
+                <label>
+                  Filter:
+                </label>
+              </th>
+              <th>
+                <select class="form-control" id="selectSpatialFilter" style="width: 1; margin-left: 2%">
+                  <option>Before time</option>
+                  <option>After time</option>
+                </select>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <label>
+                  <strong>Time before:</strong>
+                </label>
+              </th>
+              <th>
+                <input type="date" id="dateBefore" style="width: 115px; margin:2% ">
+              </th>
+              <th>
+                <input type="time" id="timeBefore" style="width: 100px; margin:2%;">
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <label>
+                  <strong>Time After:</strong>  
+                </label>
+              </th>
+              <th>
+                <input type="date" id="dateAfter" style="width: 115px; margin:2%; margin-left: 4.5% ">
+              </th>
+              <th>
+                <input type="time" id="timeAfter" style="width: 100px; margin:2%;">
+              </th>
+            </tr>
+          </table> 
+        </form>
+        <button type="button" class="btn btn-secondary" id="filterTemporal" style="margin-left: 40%; margin-top: 8.5%; padding: 1%; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);">
+          <strong>Apply Temporal Filter</strong>
+        </button>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="index.js"></script> 
+  </body>
+</html>
